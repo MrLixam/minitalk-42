@@ -33,23 +33,22 @@ static void msg_reset(s_msg *msg)
 	msg->str = NULL;
 }
 
-static void handler(int sig)
+static void handler(int sig, siginfo_t *info, void *context)
 {
 	static struct s_msg	msg = { 0 };
+	
 	msg.byte <<= 1;
 	msg.byte |= (sig == SIGUSR1);
 	msg.shift++;
 	if (msg.shift == 8 && msg.cond < 4)
 		len_calc(&msg);
-	else if (msg.cond == 4)
-	{
+	else if (msg.cond++ == 4)
 		msg.str = ft_calloc(msg.len + 1, 1);
-		msg.cond++;
-	}
 	if (msg.shift == 8 && msg.cond > 4 && msg.i < msg.len)
 	{
 		msg.str[msg.i] |= msg.byte;
 		msg.i++;
+		kill(info->si_pid, SIGUSR1);
 		msg.shift = 0;
 		msg.byte = 0;
 	}
@@ -63,9 +62,13 @@ static void handler(int sig)
 
 int main()
 {
+	struct sigaction sa = {0};
+	
 	ft_printf("my pid is %d\n", getpid());
-	signal(SIGUSR1, handler);
-	signal(SIGUSR2, handler);
+	sa.sa_sigaction = handler;
+	sa.sa_flags = SA_SIGINFO;
+	sigaction(SIGUSR1, &sa, NULL);
+	sigaction(SIGUSR2, &sa, NULL);
 	while(1)
 		continue;
 }

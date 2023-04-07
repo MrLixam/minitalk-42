@@ -40,6 +40,7 @@ static void handler(int sig, siginfo_t *info, void *context)
 	msg.byte <<= 1;
 	msg.byte |= (sig == SIGUSR1);
 	msg.shift++;
+	kill(info->si_pid, SIGUSR1);
 	if (msg.shift == 8 && msg.cond < 4)
 		len_calc(&msg);
 	else if (msg.cond++ == 4)
@@ -48,7 +49,6 @@ static void handler(int sig, siginfo_t *info, void *context)
 	{
 		msg.str[msg.i] |= msg.byte;
 		msg.i++;
-		kill(info->si_pid, SIGUSR1);
 		msg.shift = 0;
 		msg.byte = 0;
 	}

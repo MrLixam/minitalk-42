@@ -12,11 +12,33 @@
 
 #include "minitalk.h"
 
+int sig_wait = 0;
+
+void handler(int sig)
+{
+	if (sig == SIGUSR1)
+		sig_wait = 1;
+}	
+
+static void ft_send_char(int pid, char c)
+{
+	while(c)
+	{
+		if (c & 1)
+			kill(pid, SIGUSR1);
+		else
+			kill(pid, SIGUSR2);
+		c >>= 1;
+		while (!sig_wait)
+			continue ;
+		sig_wait = 0;
+	}
+}
+
 static void ft_send_msg(int pid, char *msg)
 {
 	int i;
 	int len;
-	int shift;
 
 	len = ft_strlen(msg);
 	i = 32;
@@ -26,22 +48,14 @@ static void ft_send_msg(int pid, char *msg)
 			kill(pid,SIGUSR1);
 		else
 			kill(pid,SIGUSR2);
-		usleep(500);
+		while (!sig_wait)
+			continue;
+		sig_wait = 0;
 	}
-	i = 0;
-	while (msg[i])
-	{
-		shift = 8;
-		while(shift--)
-		{
-			if ((msg[i] >> shift) & 1)
-				kill(pid, SIGUSR1);
-			else
-				kill(pid, SIGUSR2);
-			usleep(500);
-		}
-		i++;
-	}
+	i = -1;
+	while (msg[++i])
+		send_char(pid, msg[i]);
+	send_char(pid, '\0');
 }
 
 int main(int argc, char** argv)
@@ -53,5 +67,6 @@ int main(int argc, char** argv)
 		ft_printf("The message string must mot be empty\n");
 		return (0);
 	}
+	signal(SIGUSR1, handler);
 	ft_send_msg(ft_atoi(argv[1]), argv[2]);
 }

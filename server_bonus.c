@@ -6,7 +6,7 @@
 /*   By: lvincent <lvincent@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 11:12:02 by lvincent          #+#    #+#             */
-/*   Updated: 2023/04/18 19:23:42 by lvincent         ###   ########.fr       */
+/*   Updated: 2023/04/18 20:43:08 by lvincent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,15 +33,19 @@ static void	msg_reset(t_msg *msg)
 	msg->str = NULL;
 }
 
+static void	ft_receive_bit(int sig, t_msg *msg)
+{
+	msg->byte <<= 1;
+	msg->byte |= (sig == SIGUSR1);
+	msg->shift++;
+}
+
 static void	handle(int sig, siginfo_t *info, void *context)
 {
 	static t_msg	msg = {0};
 
 	(void)context;
-	msg.byte <<= 1;
-	msg.byte |= (sig == SIGUSR1);
-	msg.shift++;
-	kill(info->si_pid, SIGUSR1);
+	ft_receive_bit(sig, &msg);
 	if (msg.shift == 8 && msg.cond < 4)
 		len_calc(&msg);
 	else if (msg.cond == 4)
@@ -60,7 +64,9 @@ static void	handle(int sig, siginfo_t *info, void *context)
 	{
 		ft_putstr_fd((char *)msg.str, 1);
 		msg_reset(&msg);
+		kill(info->si_pid, SIGUSR2);
 	}
+	kill(info->si_pid, SIGUSR1);
 }
 
 int	main(void)

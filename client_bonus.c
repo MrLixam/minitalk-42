@@ -6,7 +6,7 @@
 /*   By: lvincent <lvincent@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 10:38:11 by lvincent          #+#    #+#             */
-/*   Updated: 2023/04/18 19:39:51 by lvincent         ###   ########.fr       */
+/*   Updated: 2023/04/18 20:43:29 by lvincent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,7 @@ int	main(int argc, char **argv)
 		ft_printf("The message string must mot be empty\n");
 		return (-1);
 	}
-	if (argv[2] < 0)
+	if (argv[1] < 0)
 	{
 		ft_printf("Invalid PID");
 		return (-1);
